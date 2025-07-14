@@ -15,10 +15,10 @@ module.exports = {
                 .setDescription('Tier')
                 .setRequired(true)
                 .addChoices(
-                    { name: 'BT', value: 'BT' },
-                    { name: 'LT', value: 'LT' },
-                    { name: 'HT', value: 'HT' },
-                    { name: 'ET', value: 'ET' },
+                    { name: 'Beginner Tier', value: 'BT' },
+                    { name: 'Low Tier', value: 'LT' },
+                    { name: 'High Tier', value: 'HT' },
+                    { name: 'Elite Tier', value: 'ET' },
                     { name: 'Alle', value: 'Alle' },
                 ))
         .addStringOption(option =>
@@ -43,6 +43,14 @@ module.exports = {
         const role = interaction.guild.roles.cache.find(r => r.name.toLowerCase() === 'magiergilde');
         const mention = role ? `<@&${role.id}>` : '@magiergilde';
 
-        await interaction.reply(`${tier} - <t:${Math.floor(time / 1000)}:f> - ${text} - ${mention}`);
+        const emojiMap = {
+            BT: ':MG_BT:',
+            LT: ':MG_LT:',
+            HT: ':MG_HT:',
+            ET: ':MG_ET:',
+        };
+        const tierDisplay = emojiMap[tier] || tier;
+
+        await interaction.reply(`${tierDisplay} - <t:${Math.floor(time / 1000)}:f> - ${text} - ${mention}`);
     },
 };
