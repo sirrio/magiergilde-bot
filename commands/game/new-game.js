@@ -1,42 +1,43 @@
-const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const {
+    SlashCommandBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    MessageFlags,
+} = require('discord.js');
+const { pendingGames } = require('../../state');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('new-game')
         .setDescription('Erstellt eine neue Spielankuendigung.'),
     async execute(interaction) {
-        const now = new Date();
-        const defaultDate = now.toISOString().slice(0, 16);
+        const id = interaction.id;
+        pendingGames.set(id, {
+            userId: interaction.user.id,
+            tiers: new Set(),
+            commandInteraction: interaction,
+        });
 
-        const modal = new ModalBuilder()
-            .setCustomId('newGameModal')
-            .setTitle('Neues Spiel');
-
-        const dateInput = new TextInputBuilder()
-            .setCustomId('gameDate')
-            .setLabel('Datum/Uhrzeit (YYYY-MM-DDTHH:mm)')
-            .setStyle(TextInputStyle.Short)
-            .setRequired(true)
-            .setValue(defaultDate);
-
-        const tierInput = new TextInputBuilder()
-            .setCustomId('gameTier')
-            .setLabel('Tier (BT, LT, HT, ET, Alle)')
-            .setStyle(TextInputStyle.Short)
-            .setRequired(true);
-
-        const textInput = new TextInputBuilder()
-            .setCustomId('gameText')
-            .setLabel('Text')
-            .setStyle(TextInputStyle.Paragraph)
-            .setRequired(false);
-
-        modal.addComponents(
-            new ActionRowBuilder().addComponents(dateInput),
-            new ActionRowBuilder().addComponents(tierInput),
-            new ActionRowBuilder().addComponents(textInput),
+        const tierButtons = ['BT', 'LT', 'HT', 'ET'].map(tier =>
+            new ButtonBuilder()
+                .setCustomId(`tier_${id}_${tier}`)
+                .setLabel(tier)
+                .setStyle(ButtonStyle.Secondary),
         );
 
-        await interaction.showModal(modal);
+        const row1 = new ActionRowBuilder().addComponents(tierButtons);
+        const row2 = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId(`details_${id}`)
+                .setLabel('Weiter')
+                .setStyle(ButtonStyle.Primary),
+        );
+
+        await interaction.reply({
+            content: 'Tiers ausw\xC3\xA4hlen und dann "Weiter" klicken:',
+            components: [row1, row2],
+            flags: MessageFlags.Ephemeral,
+        });
     },
 };
