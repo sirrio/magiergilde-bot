@@ -129,8 +129,27 @@ module.exports = {
                 return e ? e.toString() : t;
             }).join(' ');
 
-            await interaction.channel.send(`${tiers} - <t:${Math.floor(time / 1000)}:f> - ${mention} - ${text}\nErstellt von <@${data.userId}>`);
+            const date = new Date(time);
+            const formattedDate = `${date.toLocaleString('de-DE', {
+                day: '2-digit',
+            })}. ${date.toLocaleString('de-DE', { month: 'long' })} ${date.toLocaleString('de-DE', {
+                year: 'numeric',
+            })} ${date.toLocaleString('de-DE', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+            })}`;
+
+            const announcement = `${tiers} - ${formattedDate} - von <@${data.userId}> - ${mention} - ${text}`;
+            const msg = await interaction.channel.send(announcement);
+            await msg.startThread({ name: 'Spiel-Thread', autoArchiveDuration: 1440 });
+
+            if (data.commandInteraction) {
+                await data.commandInteraction.deleteReply().catch(() => {});
+            }
+
             await interaction.reply({ content: 'Ankündigung erstellt', flags: MessageFlags.Ephemeral });
+            setTimeout(() => interaction.deleteReply().catch(() => {}), 5000);
             return;
         }
 

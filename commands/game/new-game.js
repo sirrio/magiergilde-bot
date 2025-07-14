@@ -13,7 +13,11 @@ module.exports = {
         .setDescription('Erstellt eine neue Spielankuendigung.'),
     async execute(interaction) {
         const id = interaction.id;
-        pendingGames.set(id, { userId: interaction.user.id, tiers: new Set() });
+        pendingGames.set(id, {
+            userId: interaction.user.id,
+            tiers: new Set(),
+            commandInteraction: interaction,
+        });
 
         const tierButtons = ['BT', 'LT', 'HT', 'ET'].map(tier =>
             new ButtonBuilder()
