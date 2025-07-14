@@ -4,9 +4,6 @@ const {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
 } = require('discord.js');
 const { pendingGames } = require('../state');
 
@@ -66,47 +63,34 @@ module.exports = {
             const now = new Date();
             const defaultDate = now.toISOString().slice(0, 16);
 
-            const modal = new ModalBuilder()
-                .setCustomId(`detailsModal_${id}`)
-                .setTitle('Details zum Spiel');
+            await interaction.update({
+                content: `Bitte Datum/Uhrzeit eingeben (YYYY-MM-DDTHH:mm). Standard: ${defaultDate}`,
+                components: [],
+            });
 
-            const dateInput = new TextInputBuilder()
-                .setCustomId('gameDate')
-                .setLabel('Datum/Uhrzeit (YYYY-MM-DDTHH:mm)')
-                .setStyle(TextInputStyle.Short)
-                .setRequired(true)
-                .setValue(defaultDate);
+            const filter = m => m.author.id === data.userId;
 
-            const textInput = new TextInputBuilder()
-                .setCustomId('gameText')
-                .setLabel('Text')
-                .setStyle(TextInputStyle.Paragraph)
-                .setRequired(false);
-
-            modal.addComponents(
-                new ActionRowBuilder().addComponents(dateInput),
-                new ActionRowBuilder().addComponents(textInput),
-            );
-
-            await interaction.showModal(modal);
-            return;
-        }
-
-        if (interaction.isModalSubmit() && interaction.customId.startsWith('detailsModal_')) {
-            const id = interaction.customId.replace('detailsModal_', '');
-            const data = pendingGames.get(id);
-            pendingGames.delete(id);
-
-            if (!data) {
-                await interaction.reply({
-                    content: 'Keine Daten gefunden.',
-                    flags: MessageFlags.Ephemeral,
-                });
+            const dateCollected = await interaction.channel.awaitMessages({ filter, max: 1, time: 60000 });
+            if (!dateCollected.size) {
+                pendingGames.delete(id);
+                await interaction.followUp({ content: 'Zeit abgelaufen. Bitte Befehl erneut ausf\u00fchren.', flags: MessageFlags.Ephemeral });
                 return;
             }
+            const dateMsg = dateCollected.first();
+            const dateString = dateMsg.content.trim() || defaultDate;
+            await dateMsg.delete().catch(() => {});
 
-            const dateString = interaction.fields.getTextInputValue('gameDate');
-            const text = interaction.fields.getTextInputValue('gameText') || '';
+            await interaction.followUp({ content: 'Bitte Text eingeben (optional):', flags: MessageFlags.Ephemeral });
+            const textCollected = await interaction.channel.awaitMessages({ filter, max: 1, time: 60000 });
+            if (!textCollected.size) {
+                pendingGames.delete(id);
+                await interaction.followUp({ content: 'Zeit abgelaufen. Bitte Befehl erneut ausf\u00fchren.', flags: MessageFlags.Ephemeral });
+                return;
+            }
+            const textMsg = textCollected.first();
+            const text = textMsg.content.trim();
+            await textMsg.delete().catch(() => {});
+            pendingGames.delete(id);
 
             let time = Date.parse(dateString);
             if (Number.isNaN(time)) {
@@ -129,8 +113,8 @@ module.exports = {
                 return e ? e.toString() : t;
             }).join(' ');
 
-            await interaction.channel.send(`${tiers} - <t:${Math.floor(time / 1000)}:f> - ${text} - ${mention}\nErstellt von <@${data.userId}>`);
-            await interaction.reply({ content: 'Ank\xC3\xBCndigung erstellt', flags: MessageFlags.Ephemeral });
+            await interaction.channel.send(`${tiers} - <t:${Math.floor(time / 1000)}:f> - ${mention} - ${text}\nErstellt von <@${data.userId}>`);
+            await interaction.followUp({ content: 'Ank\u00fcndigung erstellt', flags: MessageFlags.Ephemeral });
             return;
         }
 
