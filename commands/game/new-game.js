@@ -8,7 +8,7 @@ module.exports = {
             option
                 .setName('date')
                 .setDescription('Datum/Uhrzeit (YYYY-MM-DDTHH:mm)')
-                .setRequired(false))
+                .setRequired(true))
         .addStringOption(option =>
             option
                 .setName('tier')
@@ -25,7 +25,7 @@ module.exports = {
             option
                 .setName('text')
                 .setDescription('Text')
-                .setRequired(false)),
+                .setRequired(true)),
     async execute(interaction) {
         const tier = interaction.options.getString('tier');
         const dateString = interaction.options.getString('date');
