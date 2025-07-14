@@ -44,10 +44,10 @@ module.exports = {
         const mention = role ? `<@&${role.id}>` : '@magiergilde';
 
         const emojiMap = {
-            BT: ':MG_BT:',
-            LT: ':MG_LT:',
-            HT: ':MG_HT:',
-            ET: ':MG_ET:',
+            BT: '<:MG_BT:804713705358622800>',
+            LT: '<:MG_LT:804713705262546995>',
+            HT: '<:MG_HT:804713704918089780>',
+            ET: '<:MG_ET:804713705337782312>',
         };
         const tierDisplay = emojiMap[tier] || tier;
 
