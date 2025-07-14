@@ -1,4 +1,9 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+const {
+    SlashCommandBuilder,
+    ActionRowBuilder,
+    StringSelectMenuBuilder,
+    MessageFlags,
+} = require('discord.js');
 const { pendingGames } = require('../../state');
 
 module.exports = {
@@ -48,6 +53,10 @@ module.exports = {
                 ),
         );
 
-        await interaction.reply({ content: 'W\xC3\xA4hle das Tier', components: [row], ephemeral: true });
+        await interaction.reply({
+            content: 'W\xC3\xA4hle das Tier',
+            components: [row],
+            flags: MessageFlags.Ephemeral,
+        });
     },
 };

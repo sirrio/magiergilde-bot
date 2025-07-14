@@ -9,7 +9,10 @@ module.exports = {
             pendingGames.delete(interaction.customId);
 
             if (!data) {
-                await interaction.reply({ content: 'Keine Daten gefunden.', ephemeral: true });
+                await interaction.reply({
+                    content: 'Keine Daten gefunden.',
+                    flags: MessageFlags.Ephemeral,
+                });
                 return;
             }
 
