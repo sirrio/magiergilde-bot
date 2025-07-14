@@ -64,7 +64,11 @@ module.exports = {
             }
 
             const now = new Date();
-            const defaultDate = now.toISOString().slice(0, 16);
+            const defaultDate = now.toISOString().slice(0, 10);
+            const nextHour = new Date(now);
+            nextHour.setMinutes(0, 0, 0);
+            nextHour.setHours(nextHour.getHours() + 1);
+            const defaultTime = nextHour.toISOString().slice(11, 16);
 
             const modal = new ModalBuilder()
                 .setCustomId(`detailsModal_${id}`)
@@ -72,10 +76,17 @@ module.exports = {
 
             const dateInput = new TextInputBuilder()
                 .setCustomId('gameDate')
-                .setLabel('Datum/Uhrzeit (YYYY-MM-DDTHH:mm)')
+                .setLabel('Datum (YYYY-MM-DD)')
                 .setStyle(TextInputStyle.Short)
                 .setRequired(true)
                 .setValue(defaultDate);
+
+            const timeInput = new TextInputBuilder()
+                .setCustomId('gameTime')
+                .setLabel('Uhrzeit (HH:mm)')
+                .setStyle(TextInputStyle.Short)
+                .setRequired(true)
+                .setValue(defaultTime);
 
             const textInput = new TextInputBuilder()
                 .setCustomId('gameText')
@@ -85,6 +96,7 @@ module.exports = {
 
             modal.addComponents(
                 new ActionRowBuilder().addComponents(dateInput),
+                new ActionRowBuilder().addComponents(timeInput),
                 new ActionRowBuilder().addComponents(textInput),
             );
 
@@ -105,10 +117,11 @@ module.exports = {
             }
 
             const dateString = interaction.fields.getTextInputValue('gameDate');
+            const timeString = interaction.fields.getTextInputValue('gameTime');
             const text = interaction.fields.getTextInputValue('gameText') || '';
             pendingGames.delete(id);
 
-            let time = Date.parse(dateString);
+            let time = Date.parse(`${dateString}T${timeString}`);
             if (Number.isNaN(time)) {
                 time = Date.now();
             }
