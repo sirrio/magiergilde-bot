@@ -3,23 +3,6 @@ const { Events, MessageFlags } = require('discord.js');
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
-        if (interaction.isModalSubmit() && interaction.customId === 'newGameModal') {
-            const tier = interaction.fields.getTextInputValue('gameTier');
-            const dateString = interaction.fields.getTextInputValue('gameDate');
-            const text = interaction.fields.getTextInputValue('gameText') || '';
-
-            let time = Date.parse(dateString);
-            if (Number.isNaN(time)) {
-                time = Date.now();
-            }
-
-            const role = interaction.guild.roles.cache.find(r => r.name.toLowerCase() === 'magiergilde');
-            const mention = role ? `<@&${role.id}>` : '@magiergilde';
-
-            await interaction.reply(`${tier} - <t:${Math.floor(time / 1000)}:f> - ${text} - ${mention}`);
-            return;
-        }
-
         if (!interaction.isChatInputCommand()) return;
 
         const command = interaction.client.commands.get(interaction.commandName);
