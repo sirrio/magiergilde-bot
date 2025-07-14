@@ -1,12 +1,51 @@
-const { Events, MessageFlags } = require('discord.js');
+const { Events, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { pendingGames } = require('../state');
 
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
-        if (interaction.isStringSelectMenu() && interaction.customId.startsWith('tierSelect_')) {
-            const data = pendingGames.get(interaction.customId);
-            pendingGames.delete(interaction.customId);
+        if (interaction.isButton() && interaction.customId.startsWith('tier_')) {
+            const [, id, tier] = interaction.customId.split('_');
+            const data = pendingGames.get(id);
+
+            if (!data) {
+                await interaction.reply({
+                    content: 'Keine Daten gefunden.',
+                    flags: MessageFlags.Ephemeral,
+                });
+                return;
+            }
+
+            if (data.tiers.has(tier)) {
+                data.tiers.delete(tier);
+            } else {
+                data.tiers.add(tier);
+            }
+
+            const row1 = new ActionRowBuilder().addComponents(
+                ['BT', 'LT', 'HT', 'ET'].map(t =>
+                    new ButtonBuilder()
+                        .setCustomId(`tier_${id}_${t}`)
+                        .setLabel(t)
+                        .setStyle(data.tiers.has(t) ? ButtonStyle.Success : ButtonStyle.Secondary),
+                ),
+            );
+
+            const row2 = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`confirm_${id}`)
+                    .setLabel('Ank\xC3\xBCndigen')
+                    .setStyle(ButtonStyle.Primary),
+            );
+
+            await interaction.update({ components: [row1, row2] });
+            return;
+        }
+
+        if (interaction.isButton() && interaction.customId.startsWith('confirm_')) {
+            const id = interaction.customId.replace('confirm_', '');
+            const data = pendingGames.get(id);
+            pendingGames.delete(id);
 
             if (!data) {
                 await interaction.reply({
@@ -23,9 +62,9 @@ module.exports = {
                 ET: '804713705337782312',
             };
 
-            const tiers = interaction.values.map(t => {
-                const id = emojiMap[t];
-                const e = id ? interaction.client.emojis.cache.get(id) : null;
+            const tiers = Array.from(data.tiers).map(t => {
+                const emId = emojiMap[t];
+                const e = emId ? interaction.client.emojis.cache.get(emId) : null;
                 return e ? e.toString() : t;
             }).join(' ');
 
